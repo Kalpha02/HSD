@@ -78,7 +78,7 @@ namespace SSDServer.Tests.Implementations
                     return false;
 
                 bool accepted = false;
-                SSDServer.Instance.RequestAccepted += (o, req) => {
+                SSDServer.Instance.RequestAccepted += (o, req) => { // !!!WICHTIG!!! Das funktioniert nur während dem testen nicht in einem real world szenario!!!!!!!!!!!
                     if(req.getRaumnummer() == raumnummer && req.getStandort() == standort)
                         accepted = true;
                 };

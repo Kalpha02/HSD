@@ -105,7 +105,7 @@ namespace SSDServer.Tests
 
         ~SSDServerTest()
         {
-            SSDServer.Instance.Close();
+            SSDServer.Instance.Close(true);
         }
 
     }

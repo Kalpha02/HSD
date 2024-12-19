@@ -65,7 +65,10 @@ namespace SSDServer
             client.NoDelay = false;
             SSDClient managedClient = new SSDClient(client);
             managedClient.EmergencyRequestMade += (o, req) => {
-                instance.requests.Add((o as SSDClient).ClientID, req);
+                if(instance.requests.ContainsKey((o as SSDClient).ClientID))
+                    instance.requests[(o as SSDClient).ClientID] = req;
+                else
+                    instance.requests.Add((o as SSDClient).ClientID, req);
                 instance.RequestReceived?.Invoke(instance, req);
                 try
                 {
