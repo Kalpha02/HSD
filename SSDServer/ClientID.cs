@@ -8,8 +8,8 @@ namespace SSDServer
 {
     public enum ClientType
     {
-        Untermensch = 0, // Kann weder Notfälle melden, noch erhalten
-        Sanitäter = 1, // Kann Notfälle erhalten
+        Observer = 0, // Kann weder Notfälle melden, noch erhalten
+        Sanitaeter = 1, // Kann Notfälle erhalten
         Lehrer = 2, // Kann Notfälle erstellen
         Admin = 3 // Kann Notfälle erstellen und erhalten
     }
@@ -22,7 +22,7 @@ namespace SSDServer
         {
             ClientID clientID = new ClientID();
             clientID.clientType = type;
-            clientID.clientID = new Guid();
+            clientID.clientID = Guid.NewGuid();
             return clientID;
         }
     }

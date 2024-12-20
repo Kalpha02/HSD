@@ -10,14 +10,13 @@ namespace SSDServer
     public class Request : IRequest
     {
         private string raumnummer, standort, description;
+        ClientID requestee;
 
-        public Guid RequestID { get; private set; }
-
-        public Request(string raumnummer, string standort, string desciption = "")
+        public Request(ClientID requestee, string raumnummer, string standort, string desciption = "")
         {
             this.raumnummer = raumnummer;
             this.standort = standort;
-            RequestID = Guid.NewGuid();
+            this.requestee = requestee;
         }
 
         public string getRaumnummer()
@@ -33,6 +32,11 @@ namespace SSDServer
         public string getDescription()
         {
             return description;
+        }
+
+        public ClientID getRequestee()
+        {
+            return requestee;
         }
     }
 }

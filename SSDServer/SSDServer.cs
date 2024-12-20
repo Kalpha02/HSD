@@ -17,6 +17,7 @@ namespace SSDServer
 
         private TcpListener socket = null;
         private static SSDServer instance = null;
+        private IAsyncResult clientAcceptResult = null;
 
         public event EventHandler<IRequest> RequestReceived;
         public event EventHandler<IRequest> RequestAccepted;
@@ -45,7 +46,7 @@ namespace SSDServer
         {
             socket = new TcpListener(IPAddress.Any, port);
             socket.Start();
-            socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
+            clientAcceptResult = socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
         }
 
         public bool Close(bool ignoreRequests = false)
@@ -53,6 +54,9 @@ namespace SSDServer
             if (!ignoreRequests && requests.Count > 0)
                 return false;
 
+            //Instance.socket.EndAcceptSocket(instance.clientAcceptResult);
+            Instance.socket.Stop();
+            Instance.socket.Dispose();
             for (int i = 0; i < connectedClients.Count; ++i)
                 connectedClients[i].ForceConnectionClose();
             instance = null;
@@ -61,8 +65,9 @@ namespace SSDServer
 
         private static void OnClientConnected(IAsyncResult _result)
         {
+            if (instance == null)
+                return;
             TcpClient client = instance.socket.EndAcceptTcpClient(_result);
-            client.NoDelay = false;
             SSDClient managedClient = new SSDClient(client);
             managedClient.EmergencyRequestMade += (o, req) => {
                 if(instance.requests.ContainsKey((o as SSDClient).ClientID))
@@ -90,17 +95,29 @@ namespace SSDServer
             };
             managedClient.EmergencyRequestAccepted += (o, req) => {
                 instance.RequestAccepted?.Invoke(instance, req);
+
+                SSDClient? client = instance.connectedClients.FirstOrDefault(c => c.ClientID.clientID.CompareTo(req.getRequestee().clientID) == 0);
+                client?.SendRequestAccept(req);
             };
+
             instance.connectedClients.Add(managedClient);
             instance.ConnectionEstablished?.Invoke(instance, client.Client.RemoteEndPoint);
-            instance.socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
+            client.NoDelay = false;
+            instance.clientAcceptResult = instance.socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
         }
 
         private static void SendEmergencyRequestToRespnders(IRequest req)
         {
             for (int i = 0; i < instance.connectedClients.Count; ++i)
-                if (((byte)instance.connectedClients[i].ClientID.clientType & (byte)ClientType.Sanitäter) != 0)
-                    instance.connectedClients[i].RecieveRequest(req);
+            {
+                if (((byte)instance.connectedClients[i].ClientID.clientType & (byte)ClientType.Sanitaeter) != 0)
+                {
+                    try
+                    {
+                        instance.connectedClients[i].RecieveRequest(req);
+                    }catch(Exception e) { }
+                }
+            }
         }
 
     }

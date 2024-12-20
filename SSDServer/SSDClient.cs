@@ -47,16 +47,26 @@ namespace SSDServer
             /// Range | Utility
             /// ------+----------------------------------------------------------------
             /// 0     | 0 (Code for emergency request)
-            /// 1-4   | Length of room number
-            /// 5-8   | Length of location
-            /// 9-n   | room number (as a UTF-8 string)
+            /// 1-16  | Requestee Guid
+            /// 17-20 | Length of room number
+            /// 21-24 | Length of location
+            /// 25-n  | room number (as a UTF-8 string)
             /// n-m   | location (as a UTF-8 string)
-            byte[] msg = new byte[] { 0 };
-            msg = msg.Concat(BitConverter.GetBytes(req.getRaumnummer().Length)).ToArray();
-            msg = msg.Concat(BitConverter.GetBytes(req.getStandort().Length)).ToArray();
-            msg = msg.Concat(Encoding.UTF8.GetBytes(req.getRaumnummer())).ToArray();
-            msg = msg.Concat(Encoding.UTF8.GetBytes(req.getStandort())).ToArray();
-            networkStream.Write(msg, 0, msg.Length);
+            IEnumerable<byte> msg = new byte[] { 0 };
+            msg = msg.Concat(req.getRequestee().clientID.ToByteArray());
+            msg = msg.Concat(BitConverter.GetBytes(req.getRaumnummer().Length));
+            msg = msg.Concat(BitConverter.GetBytes(req.getStandort().Length));
+            msg = msg.Concat(Encoding.UTF8.GetBytes(req.getRaumnummer()));
+            msg = msg.Concat(Encoding.UTF8.GetBytes(req.getStandort()));
+
+            byte[] data = msg.ToArray();
+            networkStream.Write(data, 0, data.Length);
+        }
+
+        public void SendRequestAccept(IRequest req)
+        {
+            // This is send immediately after a request was accepted 
+            networkStream.Write(new byte[] { 2, 1 }, 0, 2);
         }
 
         private void OnClientSendMessage(IAsyncResult _result)
@@ -119,7 +129,7 @@ namespace SSDServer
             {
                 Console.WriteLine("[WARNING] Possible malicious package recieved! Recieved invalid Guid compared to Guid assigned on connection!");
                 return;
-            }else if (((byte)ClientID.clientType & (byte)ClientType.Sanitäter) == 0)
+            } else if (((byte)ClientID.clientType & (byte)ClientType.Sanitaeter) == 0)
             {
                 Console.WriteLine("[WARNING] Possible malicious package recieved! Emergency request accepted without permission to do so!");
                 return;
@@ -166,26 +176,26 @@ namespace SSDServer
             /// n-m   | location (as a UTF-8 string)
             if (new Guid(buffer.AsSpan(1, 16)).CompareTo(ClientID.clientID) != 0)
             {
-                networkStream.Write(new byte[] { 0 }, 0, 1); // Send 0 as failure
+                networkStream.Write(new byte[] { 1, 0 }, 0, 2); // Send 0 as failure
                 throw new InvalidDataException("[WARNING] Possible malicious package recieved! Recieved invalid Guid compared to Guid assigned on connection!");
             }
             else if (((byte)ClientID.clientType & (byte)ClientType.Lehrer) == 0)
             {
-                networkStream.Write(new byte[] { 0 }, 0, 1);
+                networkStream.Write(new byte[] { 1, 0 }, 0, 2);
                 throw new InvalidDataException("[WARNING] Possible malicious package recieved! Emergency request made without permission to do so!");
             }
-
 
             int roomLength = BitConverter.ToInt32(buffer, 17);
             int locationLength = BitConverter.ToInt32(buffer, 21);
             EmergencyRequestMade?.Invoke(this, 
-                new Request (
+                new Request ( 
+                    ClientID,
                     Encoding.UTF8.GetString(buffer.AsSpan(25, roomLength)), 
                     Encoding.UTF8.GetString(buffer.AsSpan(25 + roomLength, locationLength))
                 )
             );
 
-            networkStream.Write(new byte[] { 1 }, 0, 1); // Send 1 to indicate a sucessfull request
+            networkStream.Write(new byte[] { 1, 1 }, 0, 2); // Send 1 to indicate a sucessfull request
         }
 
         private void EmegencyDescriptionProvided()
@@ -205,7 +215,7 @@ namespace SSDServer
 
             int descriptionLength = BitConverter.ToInt32(buffer, 17);
             IRequest oldReq = SSDServer.Instance.requests[ClientID];
-            SSDServer.Instance.requests[ClientID] = new Request(oldReq.getRaumnummer(), oldReq.getStandort(), Encoding.UTF8.GetString(buffer.AsSpan(21, descriptionLength)));
+            SSDServer.Instance.requests[ClientID] = new Request(ClientID, oldReq.getRaumnummer(), oldReq.getStandort(), Encoding.UTF8.GetString(buffer.AsSpan(21, descriptionLength)));
         }
 
         public void ForceConnectionClose()

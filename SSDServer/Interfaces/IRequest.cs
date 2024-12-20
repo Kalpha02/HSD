@@ -11,5 +11,6 @@ namespace SSDServer.Interfaces
         public string getRaumnummer();
         public string getStandort();
         public string getDescription();
+        public ClientID getRequestee();
     }
 }

@@ -23,9 +23,10 @@ public static class Program
         Type[] typesToTest = localAssem.GetTypes().Where(t => t.GetMethods().Any(m => m.GetCustomAttribute<TestAttribute>() != null)).ToArray();
         Stopwatch methodTimer = new Stopwatch(), classTimer = new Stopwatch();
 
+        object instance = null;
         for (int i = 0; i < typesToTest.Length; ++i)
         {
-            object instance = Activator.CreateInstance(typesToTest[i]);
+            instance = Activator.CreateInstance(typesToTest[i]);
             MethodInfo[] testMethods = instance.GetType().GetMethods().Where(m => m.GetCustomAttribute<TestAttribute>() != null).ToArray();
 
             Console.ForegroundColor = ConsoleColor.Magenta;
@@ -50,10 +51,14 @@ public static class Program
                 {
                     methodTimer.Stop();
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(String.Format("\t{0} failed! (Took {1} seconds)", testMethods[j].Name, methodTimer.ElapsedMilliseconds/1000.0));
+                    Console.WriteLine(String.Format("\t{0} failed! {1} (Took {2} seconds)", testMethods[j].Name, ex.InnerException.Message, methodTimer.ElapsedMilliseconds/1000.0));
                     Console.ForegroundColor = org;
                 }
             }
+            instance = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
             classTimer.Stop();
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine(String.Format("{0} took {1} seconds", typesToTest[i].Name, classTimer.ElapsedMilliseconds/1000.0));

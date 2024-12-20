@@ -27,6 +27,12 @@ namespace SSDServer.Tests
                     throw new Exception(String.Format("Fields {0} don't match! Expected {1} but value was {2}", fields[i].Name, fields[i].GetValue(a), fields[i].GetValue(b)));
         }
 
+        public static void That(bool value)
+        {
+            if (!value)
+                throw new Exception("Statement invalid!");
+        }
+
         public static void True() { } // Only exists for the sake of completion
 
         public static void False()
