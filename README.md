@@ -33,7 +33,8 @@ Der Server hat eine grobe dokumentation der package architektur in den dazu korr
 [ n -  m]	standort als UTF-8 string
 
 (Server zu Client)
-[0-n] package data: Daten sind Kontextabhängig sprich: Wenn eine emergency requests gemacht wurde wird die nächste Nachricht ein byte der den success angibt(ob die request angenommen wurde)
+[ 0 -  0]	package type: Ein byte welcher den typen des packages definiert
+[ 1 -  n] 	package data: Daten sind Kontextabhängig sprich: Wenn eine emergency requests gemacht wurde wird die nächste Nachricht ein byte der den success angibt(ob die request verarbeitet wurde)
 ```
 
 Package struktur wird sich rapide verändern weshalb die exakte dokumentation(außerhalb des codens) noch nicht relevant ist bis es eine minimale app gibt.
