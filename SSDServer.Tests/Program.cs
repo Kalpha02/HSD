@@ -11,13 +11,13 @@ public static class Program
     {
         ConsoleColor org = Console.ForegroundColor;
         Assembly localAssem = Assembly.GetExecutingAssembly();
-        /*if (localAssem.IsAssemblyDebugBuild())
+        if (localAssem.IsAssemblyDebugBuild())
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("The test project isn't build in release mode! Please build in release mode when testing!");
             Console.ForegroundColor = org;
             return;
-        }*/
+        }
 
         // Get all types where atleast one method needs to be tested
         Type[] typesToTest = localAssem.GetTypes().Where(t => t.GetMethods().Any(m => m.GetCustomAttribute<TestAttribute>() != null)).ToArray();
