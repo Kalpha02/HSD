@@ -1,6 +1,8 @@
 # Package Definitions
 
 # Permissions 
+|Bit index|Permission|
+|---|---|
 | 0 | SuperUser?  | 
 | 1 | Can receive?| 
 | 2 | Can send?   |
@@ -12,6 +14,8 @@
 
 # C2S PckIDs
 
+|ID|Package type|
+|---|---|
 | 0 | Login |
 | 1 | Logout |
 | 2 | Request |
@@ -21,6 +25,8 @@
 
 # S2C PckIDs
 
+|ID|Package type|
+|---|---|
 | 0 | Login | 
 | 1 | Logout | 
 | 2 | RequestReceive | 
