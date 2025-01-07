@@ -71,6 +71,8 @@ namespace SSDServer
 
         private void OnClientSendMessage(IAsyncResult _result)
         {
+            if (socket == null)
+                return;
             try
             {
                 ParseReceivedData(_result);
@@ -221,7 +223,6 @@ namespace SSDServer
         public void ForceConnectionClose()
         {
             socket.Close();
-            socket = null;
         }
     }
 }

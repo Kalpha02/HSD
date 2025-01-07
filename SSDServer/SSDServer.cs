@@ -54,11 +54,7 @@ namespace SSDServer
             if (!ignoreRequests && requests.Count > 0)
                 return false;
 
-            //Instance.socket.EndAcceptSocket(instance.clientAcceptResult);
-            Instance.socket.Stop();
-            Instance.socket.Dispose();
-            for (int i = 0; i < connectedClients.Count; ++i)
-                connectedClients[i].ForceConnectionClose();
+            instance.socket.Stop();
             instance = null;
             return true;
         }
@@ -68,9 +64,14 @@ namespace SSDServer
             if (instance == null)
                 return;
             TcpClient client = instance.socket.EndAcceptTcpClient(_result);
+            instance.ConnectionEstablished?.Invoke(instance, client.Client.RemoteEndPoint);
+            client.NoDelay = false;
             SSDClient managedClient = new SSDClient(client);
+            Instance.connectedClients.Add(managedClient);
             managedClient.EmergencyRequestMade += (o, req) => {
-                if(instance.requests.ContainsKey((o as SSDClient).ClientID))
+                if (instance == null)
+                    return;
+                if (instance.requests.ContainsKey((o as SSDClient).ClientID))
                     instance.requests[(o as SSDClient).ClientID] = req;
                 else
                     instance.requests.Add((o as SSDClient).ClientID, req);
@@ -87,10 +88,14 @@ namespace SSDServer
                 }
             };
             managedClient.ConnectionClosed += (o, ep) => {
+                if (instance == null)
+                    return;
                 instance.ConnectionClosed?.Invoke(instance, ep);
                 instance.connectedClients.Remove(o as SSDClient);
             };
             managedClient.ExceptionCatched += (o, ex) => {
+                if (instance == null)
+                    return;
                 instance.ExceptionCatched?.Invoke(instance, new Exception(String.Format("Catched exception when handling client {0}!", (o as SSDClient).ClientID.clientID), ex));
             };
             managedClient.EmergencyRequestAccepted += (o, req) => {
@@ -100,9 +105,6 @@ namespace SSDServer
                 client?.SendRequestAccept(req);
             };
 
-            instance.connectedClients.Add(managedClient);
-            instance.ConnectionEstablished?.Invoke(instance, client.Client.RemoteEndPoint);
-            client.NoDelay = false;
             instance.clientAcceptResult = instance.socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
         }
 
