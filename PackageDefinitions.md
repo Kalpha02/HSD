@@ -93,9 +93,9 @@ C2S (General Pack)
 
 S2C (General Pack)
 
-ack (1 byte)
-RequestID (GUID)
-AccountInfo 
+- ack (1 byte)
+- RequestID (GUID)
+- AccountInfo 
 
 |ID|PackageType|
 |---|---|
