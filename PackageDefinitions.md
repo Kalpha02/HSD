@@ -81,6 +81,7 @@ C2S (General Pack)
 
 |....|(1) Als eigene Klasse anlegen.
 
+|ID|PackageType|
 |---|---|
 |0|Login|
 |1|Logout|
@@ -96,6 +97,7 @@ ack (1 byte)
 RequestID (GUID)
 AccountInfo 
 
+|ID|PackageType|
 |---|---|
 |0|Login|
 |1|Logout|
