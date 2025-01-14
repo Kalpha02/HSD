@@ -46,18 +46,23 @@ namespace SSDServer
             /// 
             /// Range | Utility
             /// ------+----------------------------------------------------------------
-            /// 0     | 0 (Code for emergency request)
-            /// 1-16  | Requestee Guid
-            /// 17-20 | Length of room number
-            /// 21-24 | Length of location
-            /// 25-n  | room number (as a UTF-8 string)
+            /// 0     | AcceptModificationID TODO!
+            /// 1-16  | Requestee Guid (RequestID)
+            /// 17-20 | Length of room number (Raumnummerlänge)
+            /// 21-24 | Length of location (Standortlänge)
+            /// 25-28 | Length of description (Beschreibunglänge)
+            /// 29-n  | room number (as a UTF-8 string)
             /// n-m   | location (as a UTF-8 string)
+            /// m-o   | description (as a UTF-8 String)
             IEnumerable<byte> msg = new byte[] { 0 };
             msg = msg.Concat(req.getRequestee().clientID.ToByteArray());
             msg = msg.Concat(BitConverter.GetBytes(req.getRaumnummer().Length));
             msg = msg.Concat(BitConverter.GetBytes(req.getStandort().Length));
+            msg = msg.Concat(BitConverter.GetBytes(req.getDescription().Length));
             msg = msg.Concat(Encoding.UTF8.GetBytes(req.getRaumnummer()));
             msg = msg.Concat(Encoding.UTF8.GetBytes(req.getStandort()));
+            msg = msg.Concat(Encoding.UTF8.GetBytes(req.getDescription()));
+            /// AcceptMOdificationID currently mising
 
             byte[] data = msg.ToArray();
             networkStream.Write(data, 0, data.Length);
