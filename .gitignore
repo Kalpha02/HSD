@@ -1,3 +1,7 @@
+# *.env is used for various data points which are very sensitive, such as: 
+# SQL server IP, SQL server admin password, and other data which must not be uploaded to github
+*.env
+
 # The following command works for downloading when using Git for Windows:
 # curl -LOf http://gist.githubusercontent.com/kmorcinek/2710267/raw/.gitignore
 #

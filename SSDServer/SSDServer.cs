@@ -6,21 +6,21 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using SSDServer.Interfaces;
+using SSDServer.Database;
 
 namespace SSDServer
 {
     public class SSDServer
     {
-        internal Dictionary<ClientID, IRequest> requests = null;
+        internal Dictionary<Guid, Request> requests = null;
         private List<SSDClient> connectedClients = null;
 
         private TcpListener socket = null;
         private static SSDServer instance = null;
         private IAsyncResult clientAcceptResult = null;
 
-        public event EventHandler<IRequest> RequestReceived;
-        public event EventHandler<IRequest> RequestAccepted;
+        public event EventHandler<Request> RequestReceived;
+        public event EventHandler<Request> RequestAccepted;
         public event EventHandler<EndPoint> ConnectionEstablished;
         public event EventHandler<EndPoint> ConnectionClosed;
 
@@ -38,7 +38,7 @@ namespace SSDServer
 
         private SSDServer()
         {
-            requests = new Dictionary<ClientID, IRequest>();
+            requests = new Dictionary<Guid, Request>();
             connectedClients = new List<SSDClient>();
         }
 
@@ -71,10 +71,6 @@ namespace SSDServer
             managedClient.EmergencyRequestMade += (o, req) => {
                 if (instance == null)
                     return;
-                if (instance.requests.ContainsKey((o as SSDClient).ClientID))
-                    instance.requests[(o as SSDClient).ClientID] = req;
-                else
-                    instance.requests.Add((o as SSDClient).ClientID, req);
                 instance.RequestReceived?.Invoke(instance, req);
                 try
                 {
@@ -96,23 +92,20 @@ namespace SSDServer
             managedClient.ExceptionCatched += (o, ex) => {
                 if (instance == null)
                     return;
-                instance.ExceptionCatched?.Invoke(instance, new Exception(String.Format("Catched exception when handling client {0}!", (o as SSDClient).ClientID.clientID), ex));
+                instance.ExceptionCatched?.Invoke(instance, new Exception(String.Format("Catched exception when handling client {0}!", (o as SSDClient).Account.Username), ex));
             };
             managedClient.EmergencyRequestAccepted += (o, req) => {
                 instance.RequestAccepted?.Invoke(instance, req);
-
-                SSDClient? client = instance.connectedClients.FirstOrDefault(c => c.ClientID.clientID.CompareTo(req.getRequestee().clientID) == 0);
-                client?.SendRequestAccept(req);
             };
 
             instance.clientAcceptResult = instance.socket.BeginAcceptTcpClient(new AsyncCallback(OnClientConnected), null);
         }
 
-        private static void SendEmergencyRequestToRespnders(IRequest req)
+        private static void SendEmergencyRequestToRespnders(Request req)
         {
             for (int i = 0; i < instance.connectedClients.Count; ++i)
             {
-                if (((byte)instance.connectedClients[i].ClientID.clientType & (byte)ClientType.Sanitaeter) != 0)
+                if (((byte)instance.connectedClients[i].Account.Permissions & (byte)Account.AccountPermissions.Receiver) != 0)
                 {
                     try
                     {

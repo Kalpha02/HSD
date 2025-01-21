@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SSDServer.Interfaces
+namespace SSDAPI
 {
     public interface IRequest
     {
-        public string getRaumnummer();
-        public string getStandort();
+        public string getRoomnumber();
+        public string getLocation();
         public string getDescription();
-        public ClientID getRequestee();
     }
 }
