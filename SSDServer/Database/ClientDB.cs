@@ -24,6 +24,7 @@ namespace SSDServer.Database
         }
         private ClientDB()
         {
+            this.Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -40,6 +41,7 @@ namespace SSDServer.Database
                 entity.Property(a => a.PasswordHash);
                 entity.Property(a => a.Permissions);
             });
+
             base.OnModelCreating(modelBuilder);
         }
     }

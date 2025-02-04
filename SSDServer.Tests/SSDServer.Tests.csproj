@@ -11,4 +11,10 @@
     <ProjectReference Include="..\SSDServer\SSDServer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Databases.env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

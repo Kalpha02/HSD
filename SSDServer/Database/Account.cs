@@ -15,12 +15,12 @@ namespace SSDServer.Database
 
         public enum AccountPermissions
         {
-            Superuser = 0,
-            Receiver = 1,
-            Requester = 2,
-            Create = 4,
-            Modify = 8,
-            Delete = 16
+            Superuser = 1,
+            Receiver = 2,
+            Requester = 4,
+            Create = 8,
+            Modify = 16,
+            Delete = 32
         }
 
     }

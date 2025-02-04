@@ -3,20 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SSDAPI.Interfaces;
 
 namespace SSDServer
 {
-    public class Request
+    internal class Request : IRequest
     {
         public string raumnummer, standort, description;
-        public Guid id;
+        public Guid ID { get; set; }
 
-        public Request(Guid id, string raumnummer, string standort, string desciption = "")
+        internal Request(Guid id, string raumnummer, string standort, string desciption = "")
         {
-            this.id = id;
+            this.ID = id;
             this.raumnummer = raumnummer;
             this.standort = standort;
             this.description = desciption;
+        }
+
+        public string getRoomnumber()
+        {
+            return raumnummer;
+        }
+
+        public string getLocation()
+        {
+            return standort;
+        }
+
+        public string getDescription()
+        {
+            return description;
         }
     }
 }

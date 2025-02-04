@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using SSDAPI.Interfaces;
 using SSDServer.Database;
 
 namespace SSDServer
@@ -19,8 +20,8 @@ namespace SSDServer
         private static SSDServer instance = null;
         private IAsyncResult clientAcceptResult = null;
 
-        public event EventHandler<Request> RequestReceived;
-        public event EventHandler<Request> RequestAccepted;
+        public event EventHandler<IRequest> RequestReceived;
+        public event EventHandler<IRequest> RequestAccepted;
         public event EventHandler<EndPoint> ConnectionEstablished;
         public event EventHandler<EndPoint> ConnectionClosed;
 
@@ -72,16 +73,7 @@ namespace SSDServer
                 if (instance == null)
                     return;
                 instance.RequestReceived?.Invoke(instance, req);
-                try
-                {
-                    SendEmergencyRequestToRespnders(req);
-                }
-                catch (Exception e)
-                {
-                    instance.ExceptionCatched?.Invoke(instance,
-                        new Exception(String.Format("Failed to send emergency request to responders! Error: {0}(Type: {1})", e.Message, e.GetType().ToString()))
-                    );
-                }
+                SendEmergencyRequestToRespnders(req);
             };
             managedClient.ConnectionClosed += (o, ep) => {
                 if (instance == null)
@@ -105,12 +97,15 @@ namespace SSDServer
         {
             for (int i = 0; i < instance.connectedClients.Count; ++i)
             {
-                if (((byte)instance.connectedClients[i].Account.Permissions & (byte)Account.AccountPermissions.Receiver) != 0)
+                if ((instance.connectedClients[i].Account.Permissions & (int)Account.AccountPermissions.Superuser) != 0 || (instance.connectedClients[i].Account.Permissions & (int)Account.AccountPermissions.Receiver) != 0)
                 {
                     try
                     {
                         instance.connectedClients[i].RecieveRequest(req);
-                    }catch(Exception e) { }
+                    }catch(Exception e) 
+                    {
+                        instance.ExceptionCatched?.Invoke(instance, e);
+                    }
                 }
             }
         }

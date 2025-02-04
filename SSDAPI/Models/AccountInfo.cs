@@ -18,7 +18,7 @@ namespace SSDAPI.Models
             int unLength = BitConverter.ToInt32(data, 8);
             PasswordHash = data.AsSpan(12, 32).ToArray();
             Permissions = BitConverter.ToInt32(data, 44);
-            Username = Encoding.UTF8.GetString(data, 48, data.Length - 48);
+            Username = Encoding.UTF8.GetString(data, 48, unLength);
         }
 
         public AccountInfo(long id, string username, byte[] password, int permissions)

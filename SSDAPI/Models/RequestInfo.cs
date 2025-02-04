@@ -20,8 +20,8 @@ namespace SSDAPI.Models
             int descLength = BitConverter.ToInt32(data, 8);
             ID = new Guid(data.AsSpan(12, 16));
             Roomnumber = Encoding.UTF8.GetString(data, 28, rnLength);
-            Location = Encoding.UTF8.GetString(data, 28, locLength);
-            Description = Encoding.UTF8.GetString(data, 28, descLength);
+            Location = Encoding.UTF8.GetString(data, 28 + rnLength, locLength);
+            Description = Encoding.UTF8.GetString(data, 28 + rnLength + locLength, descLength);
         }
 
         public RequestInfo(Guid id, string rn, string location, string desc)

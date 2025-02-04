@@ -39,8 +39,8 @@ namespace SSDAPI.Models
             int roomNumber = BitConverter.ToInt32(data, 2);
             int location = BitConverter.ToInt32(data, 6);
             int description = BitConverter.ToInt32(data, 10);
-            RequestInfo = new RequestInfo(data.AsSpan(11, 16 + roomNumber + location + description).ToArray());
-            int offset = 27 + roomNumber + location + description;
+            RequestInfo = new RequestInfo(data.AsSpan(2, 28 + roomNumber + location + description).ToArray());
+            int offset = 30 + roomNumber + location + description;
             AccountInfo = new AccountInfo(data.AsSpan(offset, data.Length - offset).ToArray());
         }
 

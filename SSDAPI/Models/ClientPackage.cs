@@ -30,7 +30,7 @@ namespace SSDAPI.Models
             int rnLength = BitConverter.ToInt32(data, 1);
             int locLength = BitConverter.ToInt32(data, 5);
             int descLength = BitConverter.ToInt32(data, 9);
-            RequestInfo = new RequestInfo(data.AsSpan(13, 16 + rnLength + locLength + descLength).ToArray());
+            RequestInfo = new RequestInfo(data.AsSpan(1, 28 + rnLength + locLength + descLength).ToArray());
             AccountInfo = new AccountInfo(data.AsSpan(29 + rnLength + locLength + descLength, data.Length - (29 + rnLength + locLength + descLength)).ToArray());
         }
 
