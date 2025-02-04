@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SSDClient.Models
+namespace SSDAPI.Models
 {
     public class ServerPackage
     {
