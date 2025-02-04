@@ -1,4 +1,4 @@
-##Dokumentation Packages:
+## Dokumentation Packages:
 Es gibt insgesamt zwei General Packages, welche zwischen Server und Client gesendet werden: 
 - CLient to Server (C2S)
 - Server to Client (S2C)
@@ -7,35 +7,35 @@ Wir arbeiten in den Packages mit Bytes, sodass die Größe der Informationen im 
 Es gibt zwei Klassen, durch die das Package erstellt wird: RequestInfo / AccountInfo.
 
 
-#C2S - General Pack:
+# C2S - General Pack:
 | Bestandteil | Typ | Klasse | Description | 
 |---|---|---|---|
-|Raumnummer  | 4 Bytes  | RequestInfo | Raumnummer, in der der Notfall abgesetzt wurde |
-|Standort    | 4 Bytes  | RequestInfo | Standort, in der der Notfall abgesetzt wurde   | 
-|Description | 4 Bytes  | RequestInfo | Beschreibung des Notfalls, was passiert ist    | 
-|ResquestId  | GUID     | RequestInfo | Die Id des Notfalls, der abgesetzt wurde       | 
-|Raumnummer  | UTF-8    | RequestInfo |                                                |
-|Standort    | UTF-8    | RequestInfo |                                                |
-|Description | UTF-8    | RequestInfo |                                                |
-|AccountID   | bigInt   | AccountInfo |                                                |
-|Username    | 4 Bytes  | AccountInfo |                                                |
-|PasswordHash| byte[32] | AccountInfo |                                                |
-|Permission  | 4 Bytes  | AccountInfo |                                                |
-|Username    | UTF-8    | AccountInfo |                                                |
+|Raumnummer  | 4 Bytes  | RequestInfo | Länge der Raumnummer.                           |
+|Standort    | 4 Bytes  | RequestInfo | Länge des Standortes.                           | 
+|Description | 4 Bytes  | RequestInfo | Länge der Beschreibung.                         | 
+|ResquestId  | GUID     | RequestInfo | Die Id des Notfalls, der abgesetzt wurde.       | 
+|Raumnummer  | UTF-8    | RequestInfo | Raumnummer, in der der Notfall abgesetzt wurde. |
+|Standort    | UTF-8    | RequestInfo | Standort, in der der Notfall abgesetzt wurde.   |
+|Description | UTF-8    | RequestInfo | Beschreibung des Notfalls, was passiert ist.    |
+|AccountID   | bigInt   | AccountInfo | ID des Accounts aus der Datenbanktabelle.       |
+|Username    | 4 Bytes  | AccountInfo | Länge des Usernames.                            |
+|PasswordHash| byte[32] | AccountInfo | Passwort des Users.                             |
+|Permission  | 4 Bytes  | AccountInfo | Rechte des Users.                               |
+|Username    | UTF-8    | AccountInfo | Name des Users.                                 |
 
 
 |ID |PackageType |Description |
 |---|---|---|
-|0  | Login		           |    |
-|1  | Logout             |    |
+|0  | Login		           | Login des Users. |
+|1  | Logout             | Logout des Users.   |
 |2  | Request            |    |
 |3  | RequestAccepted    |    |
-|4  | AccountModified    |    |
+|4  | AccountModified    | Verwalten und Bearbeiten von User |
 |5  | RequestedInfo      |    |
-|6  | RequestDescription |    |
+|6  | RequestDescription | Beschreibung des Notfalls |
 
 
-#S2C - General Pack
+# S2C - General Pack
 Das Server-to-Client-Package (S2C) unterscheidet sich dahingehend, dass ein Acknowledge-Byte am Anfang des Packages steht.  
 Ansonsten ist das Package wie Client-to-Server-Package (C2S) aufgebaut. Es besteht aus den Informationen der AccountInfo und RequestInfo. 
 |ID |PackageType |Description |
@@ -50,7 +50,7 @@ Ansonsten ist das Package wie Client-to-Server-Package (C2S) aufgebaut. Es beste
 |7  |RequestInfo       |    |
 
 
-#Permissions
+# Permissions
 Anstelle von Rollen haben wir uns für Rechte entschieden, welche einen Bit-Index enthalten und an die jeweiligen User verteilt werden.
 Aktuell gibt es 6 Permissions. Es ist genügend Freiraum, um weitere Permissions anzulegen.
 |Bit Index |PackageType | Description |
