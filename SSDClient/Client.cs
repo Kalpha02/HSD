@@ -131,10 +131,12 @@ namespace SSDServer
         public void login()
         {
             /// get account Info from class
-            
             ServerPackage package = new ServerPackage(buffer);
+            if (package.Acknowledge == 0)
+            {
+                throw new InvalidOperationException("Failed to login.");
+            }
             accountInfo = package.AccountInfo;
         }
-
     }
 }
