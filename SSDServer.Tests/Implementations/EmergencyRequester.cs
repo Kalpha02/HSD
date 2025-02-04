@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Cache;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using SSDServer.Interfaces;
+using SSDAPI;
+using SSDServer.Models;
 using SSDServer.Tests.Extensions;
 
 namespace SSDServer.Tests.Implementations
@@ -13,119 +15,72 @@ namespace SSDServer.Tests.Implementations
     internal class EmergencyRequester : IEmergencyRequest
     {
         TcpClient tcpClient;
-        byte[] data = null;
-        IRequest recievedrequest = null;
-        bool requestProcessed = false;
+        NetworkStream stream;
+        byte[] buffer;
 
-        private const byte EMERGENCY_REQUEST_RECEIVED = 0;
-        private const byte EMERGENCY_REQUEST_PROCESSED = 1;
-        private const byte EMERGENCY_REQUEST_ACCEPTED = 2;
-
-        internal EmergencyRequester(TcpClient client)
+        public EmergencyRequester(TcpClient client)
         {
             tcpClient = client;
-            data = new byte[client.ReceiveBufferSize];
-            client.GetStream().BeginRead(data, 0, client.ReceiveBufferSize, new AsyncCallback(ServerMessageRecieved), null);
+            tcpClient.ReceiveBufferSize = 4096;
+            tcpClient.SendBufferSize = 4096;
+
+            stream = client.GetStream();
+            buffer = new byte[tcpClient.ReceiveBufferSize];
         }
 
-        private void ServerMessageRecieved(IAsyncResult ar)
+        public void AcceptRequest(IRequest request)
         {
-            if (tcpClient.Client.IsDisposed())
-                return;
-            int bytesRead = tcpClient.GetStream().EndRead(ar);
-            if (bytesRead <= 0) // Server side close
-                return;
-            switch(data[0])
-            {
-                case EMERGENCY_REQUEST_RECEIVED:
-                    ParseEmergencyRequest();
-                    break;
-                case EMERGENCY_REQUEST_PROCESSED:
-                    requestProcessed = true;
-                    break;
-                case EMERGENCY_REQUEST_ACCEPTED:
-                    requestProcessed = true;
-                    break;
+            RequestInfo req = new RequestInfo(request.ID, request.getRoomnumber(), request.getLocation(), request.getDescription());
+            ClientPackage package = new ClientPackage(ClientPackage.ClientPackageID.RequestAccepted, req, new AccountInfo(0, "", 0));
+            byte[] data = package.ToByteArray();
 
-            }
-            if (tcpClient.Client.IsDisposed())
-                return;
-            tcpClient.GetStream().BeginRead(data, 0, tcpClient.ReceiveBufferSize, new AsyncCallback(ServerMessageRecieved), null);
+            stream.Write(data, 0, data.Length);
         }
 
-        private void ParseEmergencyRequest()
+        public bool CheckRequests(out IRequest request)
         {
-            int raumnummerLength = BitConverter.ToInt32(data, 17);
-            int standortLength = BitConverter.ToInt32(data, 21);
-            recievedrequest = new Request(new ClientID() { clientID = new Guid(data.AsSpan(1, 16)) }, Encoding.UTF8.GetString(data.AsSpan(25, raumnummerLength)), Encoding.UTF8.GetString(data.AsSpan(25 + raumnummerLength, standortLength)));
-        }
-
-        public bool CheckRequests(ClientID id, out IRequest request)
-        {
-            request = recievedrequest;
-            if(request == null)
+            request = null;
+            if (stream.Read(buffer, 0, 4096) == 0)
                 return false;
-            recievedrequest = null;
+
+            ServerPackage package = new ServerPackage(buffer);
+            if(package.Acknowledge == 0)
+                return false;
+
+            request = new Request(tcpClient, package.RequestInfo.ID);
             return true;
         }
 
-        public Task<bool>? MakeRequest(ClientID id, string raumnummer, string standort)
+        public Task<bool>? MakeRequest(string raumnummer, string standort)
         {
-            byte[] buffer = new byte[] { 1 };
-            buffer = buffer.Concat(id.clientID.ToByteArray()).ToArray();
-            buffer = buffer.Concat(BitConverter.GetBytes(raumnummer.Length)).ToArray();
-            buffer = buffer.Concat(BitConverter.GetBytes(standort.Length)).ToArray();
-            buffer = buffer.Concat(Encoding.UTF8.GetBytes(raumnummer)).ToArray();
-            buffer = buffer.Concat(Encoding.UTF8.GetBytes(standort)).ToArray();
+            ClientPackage package = new ClientPackage(ClientPackage.ClientPackageID.Request, new RequestInfo(Guid.Empty, raumnummer, standort, ""), new AccountInfo(0, "", 0));
+            byte[] data = package.ToByteArray();
+            stream.Write(data, 0, data.Length);
 
-            requestProcessed = false;
-            if (tcpClient.Client.IsDisposed())
-                return null;
-            tcpClient.GetStream().Write(buffer, 0, buffer.Length);
-
-            while (!requestProcessed)
-                Thread.Sleep(100);
-
-            requestProcessed = false;
-            if (data[1] == 0) // Request wasn't recognized
-                return null;
-
-            return Task.Run(() =>
+            CancellationTokenSource source = new CancellationTokenSource();
+            bool success = false;
+            Task<bool> t = Task.Run(() =>
             {
-                while (!requestProcessed)
+                while (source.IsCancellationRequested)
                     Thread.Sleep(100);
-
-                if (data[1] == 0) // Request wasn't accepted
-                    return false;
-                return true;
+                return success;
             });
+
+            stream.BeginRead(buffer, 0, buffer.Length, (ires) =>
+            {
+                stream.EndRead(ires);
+                ServerPackage serverPackage = new ServerPackage(buffer);
+                if (serverPackage.Acknowledge != 0)
+                    success = true;
+
+                source.Cancel();
+            }, null);
+
+            return t;
         }
 
-        public bool SendDescription(ClientID id, string description)
+        public bool SendDescription(string description)
         {
-            byte[] buffer  = new byte[] { 2 };
-            buffer = buffer.Concat(id.clientID.ToByteArray()).ToArray();
-            buffer = buffer.Concat(BitConverter.GetBytes(description.Length)).ToArray();
-            buffer = buffer.Concat(Encoding.UTF8.GetBytes(description)).ToArray();
-
-            if (tcpClient.Client.IsDisposed())
-                return false;
-            tcpClient.GetStream().Write(buffer, 0, buffer.Length);
-            return true;
-        }
-
-        public void AcceptRequest(ClientID id, IRequest request)
-        {
-            byte[] buffer = new byte[] { 3 };
-            buffer = buffer.Concat(id.clientID.ToByteArray()).ToArray();
-            buffer = buffer.Concat(BitConverter.GetBytes(request.getRaumnummer().Length)).ToArray();
-            buffer = buffer.Concat(BitConverter.GetBytes(request.getStandort().Length)).ToArray();
-            buffer = buffer.Concat(Encoding.UTF8.GetBytes(request.getRaumnummer())).ToArray();
-            buffer = buffer.Concat(Encoding.UTF8.GetBytes(request.getStandort())).ToArray();
-
-            if (tcpClient.Client.IsDisposed())
-                return;
-            tcpClient.GetStream().Write(buffer, 0, buffer.Length);
         }
     }
 }

@@ -123,12 +123,22 @@ namespace SSDServer
 
         private void AccountModified()
         {
-            throw new NotImplementedException();
+            if ((Account.Permissions & (int)Account.AccountPermissions.Modify) == 0)
+                throw new Exception("[WARNING] Possible malicious package recieved! Âccount modify request received without permission to do so!");
+
+            ClientPackage package = new ClientPackage(buffer);
+            Account? toMod = ClientDB.Instance.Accounts.First(acc => acc.ID == package.AccountInfo.ID);
+            if (toMod == null)
+                throw new Exception(String.Format("Failed to find User with AccountID {0}!", package.AccountInfo.ID));
+            toMod.Username = package.AccountInfo.Username;
+            toMod.Permissions = package.AccountInfo.Permissions;
+
+            ClientDB.Instance.SaveChanges();
         }
 
         private void LogoutRequested()
         {
-            throw new NotImplementedException();
+            Account = null;
         }
 
         private void AcceptEmergencyRequest()

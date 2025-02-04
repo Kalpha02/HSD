@@ -8,6 +8,7 @@ namespace SSDAPI
 {
     public interface IRequest
     {
+        public Guid ID { get; }
         public string getRoomnumber();
         public string getLocation();
         public string getDescription();

@@ -31,9 +31,11 @@ namespace SSDServer.Models
             Permissions = permissions;
 
             arr = BitConverter.GetBytes(id);
-            arr = arr.Concat(BitConverter.GetBytes(username.Length)).ToArray();
+            byte[] unData = Encoding.UTF8.GetBytes(username);
+            arr = arr.Concat(BitConverter.GetBytes(unData.Length)).ToArray();
             arr = arr.Concat(PasswordHash).ToArray();
             arr = arr.Concat(BitConverter.GetBytes(Permissions)).ToArray();
+            arr = arr.Concat(unData).ToArray();
         }
 
         public byte[] ToByteArray()

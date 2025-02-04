@@ -25,6 +25,14 @@ namespace SSDServer.Models
         public AccountInfo AccountInfo { get; private set; }
         public RequestInfo RequestInfo { get; private set; }
 
+        public ServerPackage(byte[] data)
+        {
+            pckID = (ServerPackageID)data[0];
+            Acknowledge = (byte)data[1];
+            RequestInfo = new RequestInfo(data.AsSpan(2, data.Length-2).ToArray());
+            AccountInfo = new AccountInfo(data.AsSpan(2+12+RequestInfo.))
+        }
+
         public ServerPackage(ServerPackageID id, byte ackowledge, RequestInfo requestInfo, AccountInfo accountInfo)
         {
             pckID = id;
