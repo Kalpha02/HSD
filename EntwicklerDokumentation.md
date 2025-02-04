@@ -1,15 +1,13 @@
 ##Dokumentation Packages:
-
 Es gibt insgesamt zwei General Packages, welche zwischen Server und Client gesendet werden: 
 - CLient to Server (C2S)
 - Server to Client (S2C)
 
 Wir arbeiten in den Packages mit Bytes, sodass die Größe der Informationen im Package exakt festgelegt ist.
-Für die RequestId gibt es eine GUID und die vom User angegebenen Informationen wie Raumnummer, Standort und Description sind UTF-8. 
 Es gibt zwei Klassen, durch die das Package erstellt wird: RequestInfo / AccountInfo.
 
-#C2S - General Pack:
 
+#C2S - General Pack:
 | Bestandteil | Typ | Klasse | Description | 
 |---|---|---|---|
 |Raumnummer  | 4 Bytes  | RequestInfo | Raumnummer, in der der Notfall abgesetzt wurde |
@@ -40,7 +38,6 @@ Es gibt zwei Klassen, durch die das Package erstellt wird: RequestInfo / Account
 #S2C - General Pack
 Das Server-to-Client-Package (S2C) unterscheidet sich dahingehend, dass ein Acknowledge-Byte am Anfang des Packages steht.  
 Ansonsten ist das Package wie Client-to-Server-Package (C2S) aufgebaut. Es besteht aus den Informationen der AccountInfo und RequestInfo. 
-
 |ID |PackageType |Description |
 |---|---|---|
 |0  |Login             |    |
@@ -55,9 +52,8 @@ Ansonsten ist das Package wie Client-to-Server-Package (C2S) aufgebaut. Es beste
 
 #Permissions
 Anstelle von Rollen haben wir uns für Rechte entschieden, welche einen Bit-Index enthalten und an die jeweiligen User verteilt werden.
-Aktuell gibt es 6 Permissions. Es ist genügend Freiraum, um weitere Permissions anzulegen. 
-
-|ID |PackageType | Description |
+Aktuell gibt es 6 Permissions. Es ist genügend Freiraum, um weitere Permissions anzulegen.
+|Bit Index |PackageType | Description |
 |---|---|---|
 |0  |SuperUser?   | Enthält alle Berechtigungen.
 |1  |Can receive? | Kann Notfall empfangen.
