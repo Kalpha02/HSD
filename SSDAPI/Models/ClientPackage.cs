@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Cache;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,19 +10,42 @@ namespace SSDAPI.Models
 {
     public class ClientPackage
     {
+        public enum ClientPackageType
+        { 
+            Login = 0,
+            Logout = 1,
+            Request = 2,
+            RequestAccepted = 3,
+            AccoutnModified = 4,
+            RequestInfo = 5,
+            RequestDescription = 6
+        }
+
+        public ClientPackageType PackageType { get; }
         public AccountInfo AccountInfo { get; private set; }
         public RequestInfo RequestInfo { get; private set; }
         public ClientPackage(byte[] data)
         {
-            int rnLength = BitConverter.ToInt32(data, 0);
-            int locLength = BitConverter.ToInt32(data, 4);
-            int descLength = BitConverter.ToInt32(data, 8);
-            Guid id = new Guid(data.AsSpan(12, 16));
-            string rn = Encoding.UTF8.GetString(data, 28, rnLength);
-            string location = Encoding.UTF8.GetString(data, 28 + rnLength, locLength);
-            string desc = Encoding.UTF8.GetString(data, 28 + rnLength + locLength, descLength);
-            RequestInfo = new RequestInfo(id, rn, location, desc);
-            AccountInfo = new AccountInfo(data.AsSpan(28, data.Length - (28 + rnLength + locLength + descLength)).ToArray());
+            PackageType = (ClientPackageType)data[0];
+            int rnLength = BitConverter.ToInt32(data, 1);
+            int locLength = BitConverter.ToInt32(data, 5);
+            int descLength = BitConverter.ToInt32(data, 9);
+            RequestInfo = new RequestInfo(data.AsSpan(13, 16 + rnLength + locLength + descLength).ToArray());
+            AccountInfo = new AccountInfo(data.AsSpan(29 + rnLength + locLength + descLength, data.Length - (29 + rnLength + locLength + descLength)).ToArray());
+        }
+
+        public ClientPackage(ClientPackageType type, AccountInfo accountInfo, RequestInfo requestInfo)
+        {
+            this.PackageType = type;
+            this.AccountInfo = accountInfo;
+            this.RequestInfo = requestInfo;
+        }
+
+        public byte[] ToByteArray()
+        {
+            byte[] data = new byte[] { (byte)PackageType };
+            data = data.Concat(RequestInfo.ToByteArray()).ToArray();
+            return data.Concat(AccountInfo.ToByteArray()).ToArray();
         }
     }
 }

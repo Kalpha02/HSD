@@ -13,6 +13,17 @@ namespace SSDAPI.Models
         public string Location { get; }
         public string Description { get; }
 
+        public RequestInfo(byte[] data)
+        {
+            int rnLength = BitConverter.ToInt32(data, 0);
+            int locLength = BitConverter.ToInt32(data, 4);
+            int descLength = BitConverter.ToInt32(data, 8);
+            ID = new Guid(data.AsSpan(12, 16));
+            Roomnumber = Encoding.UTF8.GetString(data, 28, rnLength);
+            Location = Encoding.UTF8.GetString(data, 28, locLength);
+            Description = Encoding.UTF8.GetString(data, 28, descLength);
+        }
+
         public RequestInfo(Guid id, string rn, string location, string desc)
         {
             ID = id;
@@ -23,13 +34,17 @@ namespace SSDAPI.Models
 
         public byte[] ToByteArray()
         {
-            byte[] bytes = BitConverter.GetBytes(Roomnumber.Length);
-            bytes = bytes.Concat(BitConverter.GetBytes(Location.Length)).ToArray();
-            bytes = bytes.Concat(BitConverter.GetBytes(Description.Length)).ToArray();
+            byte[] rnData = Encoding.UTF8.GetBytes(Roomnumber);
+            byte[] locData = Encoding.UTF8.GetBytes(Location);
+            byte[] descData = Encoding.UTF8.GetBytes(Description);
+
+            byte[] bytes = BitConverter.GetBytes(rnData.Length);
+            bytes = bytes.Concat(BitConverter.GetBytes(locData.Length)).ToArray();
+            bytes = bytes.Concat(BitConverter.GetBytes(descData.Length)).ToArray();
             bytes = bytes.Concat(ID.ToByteArray()).ToArray();
-            bytes = bytes.Concat(Encoding.UTF8.GetBytes(Roomnumber)).ToArray();
-            bytes = bytes.Concat(Encoding.UTF8.GetBytes(Location)).ToArray();
-            bytes = bytes.Concat(Encoding.UTF8.GetBytes(Description)).ToArray();
+            bytes = bytes.Concat(rnData).ToArray();
+            bytes = bytes.Concat(locData).ToArray();
+            bytes = bytes.Concat(descData).ToArray();
 
             return bytes;
         }
