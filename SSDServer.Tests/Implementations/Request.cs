@@ -32,7 +32,7 @@ namespace SSDServer.Tests.Implementations
             ServerPackage serverPackage = null;
             requester.ReceivedPackage += (o, p) =>
             {
-                if (p.PackageType == ServerPackage.ServerPackageID.RequestInfo)
+                if (p.PackageType == ServerPackage.ServerPackageType.RequestInfo)
                     serverPackage = p;
             };
             while (serverPackage == null) { }

@@ -13,18 +13,22 @@ namespace SSDServer
 {
     internal class SSDClient
     {
-        public const byte CLIENT_LOGIN_REQUEST = 0;
-        public const byte CLIENT_LOGOUT_REQUEST = 1;
-        public const byte CLIENT_EMERGENCY_REUQEST_INVOKED = 2;
-        public const byte CLIENT_EMERGENCY_REUQEST_ACCEPTED = 3;
-        public const byte CLIENT_ACCOUNT_MODIFIED = 4;
-        public const byte CLIENT_REQUEST_INFO = 5;
-        public const byte CLIENT_DESCRIPTION_PROVIDED = 6;
+        public enum PackageType : byte
+        {
+            // The first byte stands for the type of the data package
+            CLIENT_LOGIN_REQUEST = 0,
+            CLIENT_LOGOUT_REQUEST = 1,
+            CLIENT_EMERGENCY_REUQEST_INVOKED = 2,
+            CLIENT_EMERGENCY_REUQEST_ACCEPTED = 3,
+            CLIENT_ACCOUNT_MODIFIED = 4,
+            CLIENT_REQUEST_INFO = 5,
+            CLIENT_DESCRIPTION_PROVIDED = 6,
+        }
 
 
-        private TcpClient socket = null;
-        private NetworkStream networkStream = null;
-        private byte[] buffer = null;
+        private TcpClient socket { get; init; }
+        private NetworkStream networkStream { get; init; }
+        private byte[] buffer { get; init; }
 
         public Account Account { get; set; }
 
@@ -47,13 +51,13 @@ namespace SSDServer
 
         public void RecieveRequest(Request req)
         {
-            byte[] arr = new ServerPackage(ServerPackage.ServerPackageID.RequestReceive, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
+            byte[] arr = new ServerPackage(ServerPackage.ServerPackageType.RequestReceive, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
             networkStream.Write(arr, 0, arr.Length);
         }
 
         public void SendRequestAccept(Request req)
         {
-            byte[] arr = new ServerPackage(ServerPackage.ServerPackageID.RequestAccepted, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
+            byte[] arr = new ServerPackage(ServerPackage.ServerPackageType.RequestAccepted, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
             networkStream.Write(arr, 0, arr.Length);
         }
 
@@ -86,27 +90,27 @@ namespace SSDServer
                 ConnectionClosed?.Invoke(this, socket.Client.RemoteEndPoint);
                 return;
             }
-            switch (buffer[0])
+            switch ((PackageType)buffer[0])
             {
-                case CLIENT_LOGIN_REQUEST:
+                case PackageType.CLIENT_LOGIN_REQUEST:
                     LoginRequested();
                     break;
-                case CLIENT_LOGOUT_REQUEST:
+                case PackageType.CLIENT_LOGOUT_REQUEST:
                     LogoutRequested();
                     break;
-                case CLIENT_EMERGENCY_REUQEST_INVOKED:
+                case PackageType.CLIENT_EMERGENCY_REUQEST_INVOKED:
                     EmergencyRequestInvoked();
                     break;
-                case CLIENT_EMERGENCY_REUQEST_ACCEPTED:
+                case PackageType.CLIENT_EMERGENCY_REUQEST_ACCEPTED:
                     AcceptEmergencyRequest();
                     break;
-                case CLIENT_ACCOUNT_MODIFIED:
+                case PackageType.CLIENT_ACCOUNT_MODIFIED:
                     AccountModified();
                     break;
-                case CLIENT_REQUEST_INFO:
+                case PackageType.CLIENT_REQUEST_INFO:
                     EmergencyInfoRequested();
                     break;
-                case CLIENT_DESCRIPTION_PROVIDED:
+                case PackageType.CLIENT_DESCRIPTION_PROVIDED:
                     EmegencyDescriptionProvided();
                     break;
             }
@@ -118,7 +122,7 @@ namespace SSDServer
             ClientPackage package = new ClientPackage(buffer);
             Request req = SSDServer.Instance.requests.FirstOrDefault(req => req.Key.CompareTo(package.RequestInfo.ID) == 0).Value;
 
-            byte[] data = new ServerPackage(ServerPackage.ServerPackageID.RequestInfo, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
+            byte[] data = new ServerPackage(ServerPackage.ServerPackageType.RequestInfo, 1, new RequestInfo(req.ID, req.raumnummer, req.standort, req.description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
             networkStream.Write(data, 0, data.Length);
         }
 
@@ -166,14 +170,14 @@ namespace SSDServer
             Account? accInfo = ClientDB.Instance.Accounts.FirstOrDefault(acc => acc.PasswordHash.SequenceEqual(package.AccountInfo.PasswordHash) && acc.Username.Equals(package.AccountInfo.Username));
             if (accInfo == null)
             {
-                byte[] err = new ServerPackage(ServerPackage.ServerPackageID.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
+                byte[] err = new ServerPackage(ServerPackage.ServerPackageType.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
                 networkStream.Write(err, 0, err.Length);
                 this.ExceptionCatched?.Invoke(this, new Exception(String.Format("Failed login attempt from {0}", socket.Client.RemoteEndPoint)));
                 return;
             }
             Account = accInfo;
 
-            byte[] bytes = new ServerPackage(ServerPackage.ServerPackageID.Login, 1, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(accInfo.ID, accInfo.Username, new byte[32], accInfo.Permissions)).ToByteArray();
+            byte[] bytes = new ServerPackage(ServerPackage.ServerPackageType.Login, 1, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(accInfo.ID, accInfo.Username, new byte[32], accInfo.Permissions)).ToByteArray();
             networkStream.Write(bytes, 0, bytes.Length);
         }
 
@@ -183,13 +187,13 @@ namespace SSDServer
 
             if ((Account.Permissions & (int)Account.AccountPermissions.Superuser) == 0 && (Account.Permissions & (int)Account.AccountPermissions.Requester) == 0)
             {
-                byte[] err = new ServerPackage(ServerPackage.ServerPackageID.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
+                byte[] err = new ServerPackage(ServerPackage.ServerPackageType.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
                 networkStream.Write(err, 0, err.Length);
                 throw new InvalidDataException("[WARNING] Possible malicious package recieved! Emergency request made without permission to do so!");
             }
 
             Guid RequestID = Guid.NewGuid();
-            byte[] bytes = new ServerPackage(ServerPackage.ServerPackageID.RequestAcknowledged, 1, new RequestInfo(RequestID, package.RequestInfo.Roomnumber, package.RequestInfo.Location, package.RequestInfo.Description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
+            byte[] bytes = new ServerPackage(ServerPackage.ServerPackageType.RequestAcknowledged, 1, new RequestInfo(RequestID, package.RequestInfo.Roomnumber, package.RequestInfo.Location, package.RequestInfo.Description), new AccountInfo(Account.ID, Account.Username, new byte[32], Account.Permissions)).ToByteArray();
             networkStream.Write(bytes, 0, bytes.Length);
 
             SSDServer.Instance.requests.Add(RequestID, new Request(RequestID, package.RequestInfo.Roomnumber, package.RequestInfo.Location, package.RequestInfo.Description));
@@ -202,7 +206,7 @@ namespace SSDServer
 
             if ((Account.Permissions & (int)Account.AccountPermissions.Superuser) == 0 && (Account.Permissions & (int)Account.AccountPermissions.Requester) == 0)
             {
-                byte[] err = new ServerPackage(ServerPackage.ServerPackageID.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
+                byte[] err = new ServerPackage(ServerPackage.ServerPackageType.RequestAcknowledged, 0, new RequestInfo(Guid.Empty, "", "", ""), new AccountInfo(0, "", new byte[32], 0)).ToByteArray();
                 networkStream.Write(err, 0, err.Length);
                 throw new InvalidDataException("[WARNING] Possible malicious package recieved! Emergency request description provided without permission to do so!");
             }

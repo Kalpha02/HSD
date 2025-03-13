@@ -5,7 +5,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using SSDClient.Models;
+using SSDAPI.Models;
 using SSDServer;
 
 namespace SSDClient
@@ -26,8 +26,12 @@ namespace SSDClient
         {
             SHA256 sha = SHA256.Create();
             byte[] hash = sha.ComputeHash(BitConverter.GetBytes(password.GetHashCode()));
-            ClientPackage clientPackage = new ClientPackage(ClientPackage.clientPackageID.Login, new AccountInfo(0, username, 0, hash), new RequestInfo(Guid.Empty, "", "", ""));
-            sendToServer(clientPackage.toByteArray());
+
+            byte[] Ersetzen1 = Array.Empty<byte>();
+            int Ersetzen2 = 0;
+
+            ClientPackage clientPackage = new ClientPackage(ClientPackage.ClientPackageType.Login, new AccountInfo(0, username, Ersetzen1, Ersetzen2), new RequestInfo(Guid.Empty, "", "", ""));
+            sendToServer(clientPackage.ToByteArray());
         }
 
         public void sendToServer(byte[] payload) 

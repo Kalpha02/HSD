@@ -53,7 +53,7 @@ namespace SSDServer.Tests.Implementations
         public bool CheckRequests(out IRequest request)
         {
             request = null;
-            ServerPackage pck = queuedPackages.FirstOrDefault(pck=>pck.PackageType == ServerPackage.ServerPackageID.RequestReceive);
+            ServerPackage pck = queuedPackages.FirstOrDefault(pck=>pck.PackageType == ServerPackage.ServerPackageType.RequestReceive);
             if (pck == null)
                 return false;
             request = new Request(tcpClient.GetStream(), this, pck.RequestInfo.ID);

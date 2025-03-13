@@ -8,7 +8,7 @@ namespace SSDAPI.Models
 {
     public class ServerPackage
     {
-        public enum ServerPackageID
+        public enum ServerPackageType
         {
             Login = 0,
             Logout = 1,
@@ -20,12 +20,12 @@ namespace SSDAPI.Models
             RequestInfo = 7
         }
 
-        public ServerPackageID PackageType { get; }
+        public ServerPackageType PackageType { get; }
         public byte Acknowledge { get; private set; }
         public AccountInfo AccountInfo { get; private set; }
         public RequestInfo RequestInfo { get; private set; }
 
-        public ServerPackage(ServerPackageID id, byte ackowledge, RequestInfo requestInfo, AccountInfo accountInfo)
+        public ServerPackage(ServerPackageType id, byte ackowledge, RequestInfo requestInfo, AccountInfo accountInfo)
         {
             PackageType = id;
             Acknowledge = ackowledge;
@@ -34,7 +34,7 @@ namespace SSDAPI.Models
         }
 
         public ServerPackage(byte[] data) {
-            PackageType = (ServerPackageID)data[0];
+            PackageType = (ServerPackageType)data[0];
             Acknowledge = data[1];
             int roomNumber = BitConverter.ToInt32(data, 2);
             int location = BitConverter.ToInt32(data, 6);

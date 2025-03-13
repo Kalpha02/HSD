@@ -51,14 +51,14 @@ namespace SSDServer.Tests
             ServerPackage package = null;
             requester.ReceivedPackage += (o, p) =>
             {
-                if (p.PackageType == ServerPackage.ServerPackageID.Login)
+                if (p.PackageType == ServerPackage.ServerPackageType.Login)
                     package = p;
             };
 
             client.GetStream().Write(data, 0, data.Length);
             while(package == null) { }
 
-            Assert.That(package.PackageType == ServerPackage.ServerPackageID.Login);
+            Assert.That(package.PackageType == ServerPackage.ServerPackageType.Login);
             Assert.That(package.Acknowledge == 1);
             Assert.That(package.AccountInfo.Username == "TestUser");
             Assert.That(package.AccountInfo.Permissions == 1);

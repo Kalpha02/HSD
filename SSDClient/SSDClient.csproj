@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SSDAPI\SSDAPI.csproj" />
+  </ItemGroup>
+
 </Project>

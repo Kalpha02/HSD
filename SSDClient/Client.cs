@@ -6,24 +6,16 @@ using System.Net.Sockets;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
-using SSDClient.Models;
+using SSDAPI.Models;
 
 namespace SSDServer
 {
     public class Client
     {
-        AccountInfo accountInfo;
+        AccountInfo? accountInfo = null;
         TcpClient client;
         public NetworkStream stream { get; private set; }
         byte[] buffer;
-        const byte Login           = 0;
-	    const byte Logout          = 1;
-	    const byte RequestReceive  = 2;
-	    const byte RequestAccepted = 3;
-	    const byte RequestAck      = 4;
-	    const byte RoleChange      = 5;
-	    const byte AccountInfo     = 6;
-        const byte RequestInfo     = 7;
 
 
         internal Client() 
@@ -61,30 +53,30 @@ namespace SSDServer
 
         private void parseReceivedData()
         {
-            switch(buffer[0]) 
+            switch((ServerPackage.ServerPackageType)buffer[0]) 
             { 
-                case Login:
+                case ServerPackage.ServerPackageType.Login:
                     login();
                     break;
-                case Logout:
+                case ServerPackage.ServerPackageType.Logout:
                     logout();
                     break;
-                case RequestReceive:
+                case ServerPackage.ServerPackageType.RequestReceive:
                     requestReceive();
                     break;
-                case RequestAccepted:
+                case ServerPackage.ServerPackageType.RequestAccepted:
                     requestAccepted();
                     break;
-                case RequestAck:
+                case ServerPackage.ServerPackageType.RequestAcknowledged:
                     requestAck();
                     break;
-                case RoleChange:
+                case ServerPackage.ServerPackageType.RoleChange:
                     roleChange();
                     break;
-                case AccountInfo:
+                case ServerPackage.ServerPackageType.AccountInfo:
                     rccountInfo();
                     break;
-                case RequestInfo:
+                case ServerPackage.ServerPackageType.RequestInfo:
                     requestInfo();
                     break;
 
