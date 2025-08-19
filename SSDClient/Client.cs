@@ -23,14 +23,26 @@ namespace SSDServer
             client = new TcpClient(AddressFamily.InterNetwork);
             client.ReceiveBufferSize = 4096;
             client.SendBufferSize = 4096;
-
             buffer = new byte[client.ReceiveBufferSize];
 
         }
 
+        /// <summary>
+        /// Connects to server and triggers "onRecieveData" if data recieved.
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns>True if connection was succesfull.</returns>
+        public bool connect(IPAddress address)
+        {
+            try
+            {
+                client.Connect(address, 16320);
+            }
+            catch (Exception)
+            {
 
-        public bool connect(IPAddress address) {
-            client.Connect(address, 16320);
+                throw;
+            }
             if (!client.Connected)
                 return false;
 
@@ -39,6 +51,10 @@ namespace SSDServer
             return true;
         }
 
+        /// <summary>
+        /// Tries to parse recieved data.
+        /// </summary>
+        /// <param name="ar"></param>
         private void onReceiveData(IAsyncResult ar)
         {
             try
@@ -51,9 +67,13 @@ namespace SSDServer
             }
         }
 
-        private void parseReceivedData()
+        /// <summary>
+        /// Parses the recieved data.
+        /// </summary>
+        /// <returns>True if parsing is succesfull.</returns>
+        private bool parseReceivedData()
         {
-            switch((ServerPackage.ServerPackageType)buffer[0]) 
+            switch((ServerPackage.ServerPackageType)buffer[0])
             { 
                 case ServerPackage.ServerPackageType.Login:
                     login();
@@ -79,9 +99,11 @@ namespace SSDServer
                 case ServerPackage.ServerPackageType.RequestInfo:
                     requestInfo();
                     break;
-
+                default:
+                    return false;
 
             }
+            return true;
             
         }
 
@@ -120,6 +142,10 @@ namespace SSDServer
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Logs into account. Throws an exception if it not acknowledged.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         public void login()
         {
             /// get account Info from class

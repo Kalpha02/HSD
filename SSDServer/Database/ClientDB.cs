@@ -22,6 +22,7 @@ namespace SSDServer.Database
                 return instance;
             }
         }
+
         private ClientDB()
         {
             this.Database.EnsureCreated();

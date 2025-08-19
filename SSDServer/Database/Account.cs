@@ -13,6 +13,7 @@ namespace SSDServer.Database
         public byte[] PasswordHash { get; set; } = new byte[32];
         public int Permissions { get; set; } = 0;
 
+        [FlagsAttribute]
         public enum AccountPermissions
         {
             Superuser = 1,
@@ -22,6 +23,5 @@ namespace SSDServer.Database
             Modify = 16,
             Delete = 32
         }
-
     }
 }

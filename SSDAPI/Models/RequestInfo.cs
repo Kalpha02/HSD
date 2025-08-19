@@ -15,6 +15,8 @@ namespace SSDAPI.Models
 
         public RequestInfo(byte[] data)
         {
+            // Could throw index out of range exception
+
             int rnLength = BitConverter.ToInt32(data, 0);
             int locLength = BitConverter.ToInt32(data, 4);
             int descLength = BitConverter.ToInt32(data, 8);
@@ -32,6 +34,10 @@ namespace SSDAPI.Models
             Description = desc;
         }
 
+        /// <summary>
+        /// Adds a header and concats the information of emergency into a sendable array of bytes.
+        /// </summary>
+        /// <returns>An array of bytes which contains all necassary information.</returns>
         public byte[] ToByteArray()
         {
             byte[] rnData = Encoding.UTF8.GetBytes(Roomnumber);

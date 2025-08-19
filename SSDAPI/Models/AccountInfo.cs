@@ -12,8 +12,11 @@ namespace SSDAPI.Models
         public string Username { get; private set; }
         public byte[] PasswordHash { get; private set; }
         public int Permissions { get; private set; }
+
         public AccountInfo(byte[] data)
         {
+            // Could throw index out of range exception
+
             ID = BitConverter.ToInt64(data, 0);
             int unLength = BitConverter.ToInt32(data, 8);
             PasswordHash = data.AsSpan(12, 32).ToArray();
@@ -29,6 +32,10 @@ namespace SSDAPI.Models
             Permissions = permissions;
         }
 
+        /// <summary>
+        /// Converts the account info to an array of bytes. The array contains the 64-bit ID, the length of the username, the password hash, the permissions and the actual username.
+        /// </summary>
+        /// <returns></returns>
         public byte[] ToByteArray()
         {
             byte[] unData = Encoding.UTF8.GetBytes(Username);

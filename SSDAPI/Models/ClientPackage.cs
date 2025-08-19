@@ -16,7 +16,7 @@ namespace SSDAPI.Models
             Logout = 1,
             Request = 2,
             RequestAccepted = 3,
-            AccoutnModified = 4,
+            AccountModified = 4,
             RequestInfo = 5,
             RequestDescription = 6
         }
@@ -26,6 +26,8 @@ namespace SSDAPI.Models
         public RequestInfo RequestInfo { get; private set; }
         public ClientPackage(byte[] data)
         {
+            // Could throw index out of range exception
+
             PackageType = (ClientPackageType)data[0];
             int rnLength = BitConverter.ToInt32(data, 1);
             int locLength = BitConverter.ToInt32(data, 5);
@@ -40,7 +42,16 @@ namespace SSDAPI.Models
             this.AccountInfo = accountInfo;
             this.RequestInfo = requestInfo;
         }
-
+        
+        /// <summary>
+        /// Converts the information given to this class to an byte array which can be send to the server.
+        /// 
+        /// *** warning:
+        ///  Enthält nur Daten für Notruf und PackageType kann beliebig sein.
+        ///  
+        /// 
+        /// </summary>
+        /// <returns>A sendable array of bytes</returns>
         public byte[] ToByteArray()
         {
             byte[] data = new byte[] { (byte)PackageType };

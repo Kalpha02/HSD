@@ -26,7 +26,7 @@ Es gibt zwei Klassen, durch die das Package erstellt wird: RequestInfo / Account
 
 |ID |PackageType |Description |
 |---|---|---|
-|0  | Login		           | Login des Users. |
+|0  | Login		 | Login des Users. |
 |1  | Logout             | Logout des Users.   |
 |2  | Request            |    |
 |3  | RequestAccepted    |    |

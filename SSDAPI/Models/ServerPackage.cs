@@ -33,7 +33,10 @@ namespace SSDAPI.Models
             AccountInfo = accountInfo;
         }
 
-        public ServerPackage(byte[] data) {
+        public ServerPackage(byte[] data)
+        {
+            // Could throw index out of range exception
+
             PackageType = (ServerPackageType)data[0];
             Acknowledge = data[1];
             int roomNumber = BitConverter.ToInt32(data, 2);
@@ -44,6 +47,10 @@ namespace SSDAPI.Models
             AccountInfo = new AccountInfo(data.AsSpan(offset, data.Length - offset).ToArray());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public byte[] ToByteArray()
         {
             byte[] arr = new byte[] { (byte)PackageType, Acknowledge };
