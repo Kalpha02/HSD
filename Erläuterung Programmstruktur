@@ -6,142 +6,80 @@ Die Kommunikation erfolgt über TCP-Verbindungen, und die Daten werden in einem 
 
 Überblick über die Klassen und ihre Funktionen:
 
-1. Client (client.cs)
-Benötigt:
-  AccountInfo: Verwendet für die Speicherung von Kontoinformationen.
-  TcpClient: Für die Netzwerkverbindung.
-  ServerPackage: Zum Verarbeiten von empfangenen Datenpaketen.
+Interfaces
 
-Funktion: Diese Klasse stellt eine Verbindung zu einem Server her und verarbeitet eingehende Daten.
-Wichtige Methoden:
-  connect(IPAddress address): Verbindet den Client mit einem Server.
-  onReceiveData(IAsyncResult ar): Wird aufgerufen, wenn Daten empfangen werden, und leitet die Verarbeitung ein.
-  parseReceivedData(): Interpretiert die empfangenen Daten und führt entsprechende Aktionen aus (z. B. Login, Logout).
-  login(): Führt den Login-Prozess durch und verarbeitet die Bestätigung vom Server.
+IEmergencyRequest
+  Funktion: Definiert Methoden zur Bearbeitung von Notfallanfragen.
+  Interaktionen: Verwendet IRequest
+  Wichtige Methoden:
+    MakeRequest(string raumnummer, string standort): Erstellt eine Notfallanfrage.
+    SendDescription(string description): Sendet eine Beschreibung zur Anfrage.
+    CheckRequests(out IRequest request): Überprüft vorhandene Anfragen.
+    AcceptRequest(IRequest request): Akzeptiert eine Anfrage.
 
-2. ConnectionHandler (ConnectionHandler.cs)
-Benötigt:
-  Client: Verwaltet die Verbindung und Kommunikation.
-  ClientPackage: Zum Erstellen und Senden von Datenpaketen.
-  AccountInfo: Für die Erstellung von Login-Paketen.
-
-Funktion: Verwaltet die Verbindung zu einem Server und sendet Login-Anfragen.
-Wichtige Methoden:
-  login(string username, string password): Hashes das Passwort und sendet ein Login-Paket an den Server.
-  sendToServer(byte[] payload): Sendet Daten an den Server.
-
-3. Request (Request.cs)
-
-Benötigt:
-  IRequest: Implementiert das Interface für Anfragen.
-
-Funktion: Repräsentiert eine Anfrage mit Informationen wie Raum, Standort und Beschreibung.
-Wichtige Methoden:
-  getRoomnumber(), getLocation(), getDescription(): Geben die entsprechenden Informationen (Raumnummer, Ort, Beschreibung) der Anfrage zurück.
+IRequest
+  Funktion: Definiert die Struktur einer Anfrage.
+  Wichtige Methoden:
+    getRoomnumber(), getLocation(), getDescription(): Rückgabe der Anfragedetails.
 
 
-4. SSDClient (SSDClient.cs)
+Klassen
 
-Benötigt:
-  TcpClient: Für die Netzwerkverbindung.
-  NetworkStream: Für das Lesen und Schreiben von Daten.
-  ServerPackage und ClientPackage: Zum Verarbeiten von Datenpaketen.
-  Account: Für die Verwaltung von Benutzerkonten.
-  Request: Für das Verarbeiten von Anfragen.
+Client
+  Funktion: Ist für die Verwaltung der Netzwerkverbindung zwischen Client und Server für den jeweiligen Account und die Verarbeitung von Datenpaketen zuständig, die vom Server empfangen werden.
+  Interaktionen: 
+    Nutzt AccountInfo, TcpClient, ServerPackage (Siehe Unten)
 
-Funktion: Verarbeitet Nachrichten vom Client und führt entsprechende Aktionen aus.
-Wichtige Methoden:
-  RecieveRequest(Request req): Sendet eine Anfrage an den Server.
-  SendRequestAccept(Request req): Bestätigt den Empfang einer Anfrage.
-  ParseReceivedData(IAsyncResult _result): Interpretiert empfangene Daten und führt Aktionen wie Login oder Notfallanfragen aus.
+ConnectionHandler
+  Funktion: Verwaltet die Verbindung und sendet Login-Anfragen.
+  Interaktionen: Nutzt Client, ClientPackage, AccountInfo.
 
-5. SSDServer (SSDServer.cs)
+SSDServer
+  Funktion: Verwaltet eingehende Verbindungen und Anfragen vom Server.
+  Interaktionen: Nutzt TcpListener, SSDClient, Request, IRequest.
 
-Benötigt:
-  TcpListener: Zum Akzeptieren von eingehenden Verbindungen.
-  SSDClient: Zum Verwalten der verbundenen Clients.
-  Request: Zum Verwalten von Anfragen.
-  IRequest: Für Ereignisse im Zusammenhang mit Anfragen.
+SSDClient
+  Funktion: Verarbeitet Nachrichten vom Client und führt Aktionen aus, wie Meldungen über mögliche Fehler.
+  Interaktionen: Nutzt TcpClient, NetworkStream, ServerPackage, ClientPackage, Account, Request.
 
-Funktion: Verwaltet eingehende Verbindungen und Anfragen von Clients.
-Wichtige Methoden:
-  Start(int port): Startet den Server und wartet auf eingehende Verbindungen.
-  Close(bool ignoreRequests): Schließt den Server, wenn keine offenen Anfragen bestehen.
-  OnClientConnected(IAsyncResult _result): Wird aufgerufen, wenn ein neuer Client verbunden wird.
+Request
+  Funktion: Repräsentiert eine Notfallanfrage mit Details Standort, Ort, Beschreibung (Aktuell für Ort nur "Raumnummer möglich -> Überarbeiten)
+  Interaktionen: Implementiert IRequest.
 
-6. Account (Account.cs)
-Funktion: Repräsentiert ein Benutzerkonto mit Berechtigungen.
-Wichtige Eigenschaften:
-  ID, Username, PasswordHash, Permissions: Speichern die Kontoinformationen.
+SSDServer.Database:
 
-7. ClientDB (CientDB.cs)
-Benötigt:
-  DbContext: Für die Datenbankverwaltung.
-  Account: Für die Speicherung von Kontodaten.
+   Account
+    Funktion: Repräsentiert ein Benutzerkonto mit Daten (ID, username, PasswortHash, Berechtigungen).
+    Interaktionen: Wird von ClientDB genutzt.
 
-Funktion: Verwaltet die Datenbankverbindung und speichert Kontoinformationen.
-Wichtige Methoden:
-  Instance: Stellt eine Singleton-Instanz der Datenbankverbindung bereit.
-  OnConfiguring, OnModelCreating: Konfigurieren die Datenbankverbindung und das Datenmodell.
+   ConnectionStringHandler
+    Funktion: Verwaltet die Verbindungszeichenfolgen für Datenbanken und lädt dazu die Verbindungsinformationen aus einer databases.env Datei (soll später die Verbindungsdetails zur DB enthalten, die DB und die databases.env-Datei existieren aber noch nicht)
+    Interaktionen: -
 
-8. ConnectionStringHandler (ConnectionStringHandler.cs)
-Funktion: Verwaltet die Verbindungszeichenfolgen für Datenbanken.
-Wichtige Methoden:
-  this[string ident]: Gibt die Verbindungszeichenfolge für eine gegebene Kennung zurück.
+  ClientDB
+    Funktion: Verwaltet die Datenbankverbindung und speichert Kontoinformationen in der Datenbank oder ruft diese ab.
+    Interaktionen: Nutzt ConnectionStringHandler, Account.
+
+  Hinweis: In der databases.env-Datei (oder einer ähnlichen Konfigurationsdatei) ist ein Eintrag wie "CLIENT_DB=Data Source=client_database.db" o.ä. zu erwarten. 
+  Dieser Eintrag definiert, wo sich die SQLite-Datenbankdatei befindet und wie darauf zugegriffen werden kann.
 
 
-Abläufe:
-
-1. Verbindungsaufbau und Login
-
-  1) ConnectionHandler erstellt:  new ConnectionHandler(IPAddress address)  
-    Erstellt ein Client-Objekt.
-    Ruft connect(address) auf dem Client-Objekt auf.
-
-   2)  Client:  connect(IPAddress address)
-      Verbindet sich mit dem Server.
-      Beginnt, Daten vom Server zu lesen und onReceiveData zu triggern.
-
-  3) ConnectionHandler: login(string username, string password)
-      Hashed das Passwort.
-      Erstellt ein ClientPackage für den Login.
-      Ruft sendToServer(byte[] payload) auf.
-    
-   4) Client: sendToServer(byte[] payload)
-      Schreibt die Daten in den Netzwerkstream.
-
-2. Server empfängt Login-Anfrage
-
-  1) SSDServer:  OnClientConnected(IAsyncResult _result)
-      Akzeptiert neue Client-Verbindung.
-      Erstellt ein SSDClient-Objekt.
-
-  2) SSDClient: OnClientSendMessage(IAsyncResult _result)
-      Liest Daten vom Netzwerkstream.
-      Ruft ParseReceivedData(IAsyncResult _result) auf.
-
-  3) SSDClient:  ParseReceivedData(IAsyncResult _result)
-      Interpretiert das empfangene Paket.
-      Bei Login-Anfrage: Ruft LoginRequested() auf.
-
-  4) SSDClient: LoginRequested()
-    Überprüft die Anmeldedaten in der ClientDB.
-    Sendet Login-Erfolg oder -Fehlschlag zurück an den Client.
-
-3. Anfrage senden und empfangen
-
-  1) Client sendet Anfrage:
-      Ähnlicher Ablauf wie beim Login, aber mit einem anderen ClientPackage.
-  
-  2) SSDClient empfängt Anfrage: ParseReceivedData(IAsyncResult _result)
-      Bei Anfrage: Ruft EmergencyRequestInvoked() auf.
-
-  3) SSDClient: EmergencyRequestInvoked()
-      Überprüft Berechtigungen.
-      Fügt die Anfrage in die SSDServer-Anfragenliste hinzu.
-      Benachrichtigt alle berechtigten Clients über die neue Anfrage.
-
-  4) SSDServer: SendEmergencyRequestToRespnders(Request req)
-      Sendet die Anfrage an alle berechtigten SSDClient-Objekte.
 
 
+Verzeichnis SSDAPI:
+
+AccountInfo
+  Funktion: Speichert Kontoinformationen (ID, username, PasswortHash, Zugriffsrechte) und wandelt sie in Byte-Arrays um.
+  Interaktionen: Wird in ClientPackage und ServerPackage verwendet.
+
+RequestInfo
+  Funktion: Speichert Informationen zu einer Notfall-Anfrage (ID, Raumnummer, Ort, Beschreibung) und wandelt sie in Byte-Arrays um.
+  Interaktionen: Wird in ClientPackage und ServerPackage verwendet.
+
+ClientPackage
+  Funktion: Repräsentiert ein Paket, das vom Client gesendet wird bestehend aus PackageType (Interaktionstyp?: Login, Logout, Request,...), AccountInfo (von wem?), RequestInfo (Wo? Was ist passiert?)
+  Interaktionen: Nutzt AccountInfo, RequestInfo.
+
+ServerPackage
+  Funktion: Repräsentiert ein Paket, das vom Server gesendet wird bestehend aus ServerPackageType (Interaktionstyp?: Login, Logout, Anfrage erhalten, Anfrage akzeptiert, ...), AccountInfo (von wem?), RequestInfo (Wo? Was ist passiert?)
+  Interaktionen: Nutzt AccountInfo, RequestInfo.
