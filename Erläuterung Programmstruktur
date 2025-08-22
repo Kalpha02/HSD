@@ -102,14 +102,12 @@ Abläufe:
       Verbindet sich mit dem Server.
       Beginnt, Daten vom Server zu lesen und onReceiveData zu triggern.
 
-  3) ConnectionHandler:
-      login(string username, string password)
+  3) ConnectionHandler: login(string username, string password)
       Hashed das Passwort.
       Erstellt ein ClientPackage für den Login.
       Ruft sendToServer(byte[] payload) auf.
     
-   4) Client:
-      sendToServer(byte[] payload)
+   4) Client: sendToServer(byte[] payload)
       Schreibt die Daten in den Netzwerkstream.
 
 2. Server empfängt Login-Anfrage
@@ -131,7 +129,7 @@ Abläufe:
   Sendet Login-Erfolg oder -Fehlschlag zurück an den Client.
 
 3. Anfrage senden und empfangen
-Ablauf:
+
 1) Client sendet Anfrage:
     Ähnlicher Ablauf wie beim Login, aber mit einem anderen ClientPackage.
   
