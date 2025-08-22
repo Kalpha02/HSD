@@ -90,3 +90,60 @@ Wichtige Methoden:
   this[string ident]: Gibt die Verbindungszeichenfolge für eine gegebene Kennung zurück.
 
 
+Abläufe:
+
+1. Verbindungsaufbau und Login
+
+  1) ConnectionHandler erstellt:  new ConnectionHandler(IPAddress address)  
+    Erstellt ein Client-Objekt.
+    Ruft connect(address) auf dem Client-Objekt auf.
+
+   2)  Client:  connect(IPAddress address)
+      Verbindet sich mit dem Server.
+      Beginnt, Daten vom Server zu lesen und onReceiveData zu triggern.
+
+  3) ConnectionHandler:
+      login(string username, string password)
+      Hashed das Passwort.
+      Erstellt ein ClientPackage für den Login.
+      Ruft sendToServer(byte[] payload) auf.
+    
+   4) Client:
+      sendToServer(byte[] payload)
+      Schreibt die Daten in den Netzwerkstream.
+
+2. Server empfängt Login-Anfrage
+
+1) SSDServer:  OnClientConnected(IAsyncResult _result)
+    Akzeptiert neue Client-Verbindung.
+    Erstellt ein SSDClient-Objekt.
+
+2) SSDClient: OnClientSendMessage(IAsyncResult _result)
+    Liest Daten vom Netzwerkstream.
+    Ruft ParseReceivedData(IAsyncResult _result) auf.
+
+3) SSDClient:  ParseReceivedData(IAsyncResult _result)
+    Interpretiert das empfangene Paket.
+    Bei Login-Anfrage: Ruft LoginRequested() auf.
+
+4) SSDClient: LoginRequested()
+  Überprüft die Anmeldedaten in der ClientDB.
+  Sendet Login-Erfolg oder -Fehlschlag zurück an den Client.
+
+3. Anfrage senden und empfangen
+Ablauf:
+1) Client sendet Anfrage:
+    Ähnlicher Ablauf wie beim Login, aber mit einem anderen ClientPackage.
+  
+2) SSDClient empfängt Anfrage: ParseReceivedData(IAsyncResult _result)
+    Bei Anfrage: Ruft EmergencyRequestInvoked() auf.
+
+3) SSDClient: EmergencyRequestInvoked()
+    Überprüft Berechtigungen.
+    Fügt die Anfrage in die SSDServer-Anfragenliste hinzu.
+    Benachrichtigt alle berechtigten Clients über die neue Anfrage.
+
+4) SSDServer: SendEmergencyRequestToRespnders(Request req)
+    Sendet die Anfrage an alle berechtigten SSDClient-Objekte.
+
+
