@@ -10,8 +10,8 @@ namespace SSDServer.Database
 {
     public partial class ClientDB : DbContext
     {
-        public DbSet<Account> Accounts { get; set; }
-        private static ClientDB instance;
+        public DbSet<Account> Accounts { get; set; }     //Access on accounts-table in SQLite-database
+        private static ClientDB instance;                //implementation as singleton
 
         public static ClientDB Instance
         {
@@ -34,7 +34,7 @@ namespace SSDServer.Database
             base.OnConfiguring(optionsBuilder);
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)    //Defines database scheme in entity framework
         {
             modelBuilder.Entity<Account>(entity => {
                 entity.HasKey(a => a.ID);
