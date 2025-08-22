@@ -43,6 +43,10 @@ namespace SSDServer
             connectedClients = new List<SSDClient>();
         }
 
+        /// <summary>
+        /// Starts listening on defined port.
+        /// </summary>
+        /// <param name="port"></param>
         public void Start(int port = 16320)
         {
             socket = new TcpListener(IPAddress.Any, port);
@@ -109,6 +113,5 @@ namespace SSDServer
                 }
             }
         }
-
     }
 }

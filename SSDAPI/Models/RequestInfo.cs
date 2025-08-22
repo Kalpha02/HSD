@@ -15,7 +15,7 @@ namespace SSDAPI.Models
 
         public RequestInfo(byte[] data)
         {
-            // Could throw index out of range exception
+            // Injection protection necessary
 
             int rnLength = BitConverter.ToInt32(data, 0);
             int locLength = BitConverter.ToInt32(data, 4);

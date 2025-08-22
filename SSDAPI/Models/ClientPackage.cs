@@ -26,7 +26,7 @@ namespace SSDAPI.Models
         public RequestInfo RequestInfo { get; private set; }
         public ClientPackage(byte[] data)
         {
-            // Could throw index out of range exception
+            // Injection protection necessary
 
             PackageType = (ClientPackageType)data[0];
             int rnLength = BitConverter.ToInt32(data, 1);

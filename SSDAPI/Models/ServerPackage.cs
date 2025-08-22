@@ -35,7 +35,7 @@ namespace SSDAPI.Models
 
         public ServerPackage(byte[] data)
         {
-            // Could throw index out of range exception
+            // Injection protection necessary
 
             PackageType = (ServerPackageType)data[0];
             Acknowledge = data[1];

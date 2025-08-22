@@ -15,7 +15,7 @@ namespace SSDAPI.Models
 
         public AccountInfo(byte[] data)
         {
-            // Could throw index out of range exception
+            // Injection protection necessary
 
             ID = BitConverter.ToInt64(data, 0);
             int unLength = BitConverter.ToInt32(data, 8);
