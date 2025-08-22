@@ -15,12 +15,12 @@ namespace SSDServer
         internal Request(Guid id, string raumnummer, string standort, string desciption = "")
         {
             this.ID = id;
-            this.raumnummer = raumnummer;
+            this.raumnummer = raumnummer;    //TODO: adapt to other locations as "corridor", "foyer" or "schoolyard"
             this.standort = standort;
             this.description = desciption;
         }
 
-        public string getRoomnumber()
+        public string getRoomnumber() //TODO: adapt to other locations as "corridor", "foyer" or "schoolyard"
         {
             return raumnummer;
         }
