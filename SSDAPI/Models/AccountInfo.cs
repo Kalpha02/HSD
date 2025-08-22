@@ -15,7 +15,7 @@ namespace SSDAPI.Models
 
         public AccountInfo(byte[] data)
         {
-            // Injection protection necessary
+            // TODO: Implement input validation and security checks to prevent injection attacks and ensure data integrity.
 
             ID = BitConverter.ToInt64(data, 0);
             int unLength = BitConverter.ToInt32(data, 8);
